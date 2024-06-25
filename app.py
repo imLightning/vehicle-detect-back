@@ -2,7 +2,8 @@ from flask import Flask, request
 from flask_cors import cross_origin
 from apps.file.upload import upload
 from apps.detect import vehicle as ve
-from utils import reception, result
+from utils.result import Result
+from utils import recept
 from apps.login import to_login
 from apps.register import to_register
 
@@ -31,17 +32,17 @@ def record_upload():  # put application's code here
 @app.route('/setting/get', methods=['GET'])
 @cross_origin(origins='http://localhost:8080')
 def get_setting():
-    return result.success({
+    return Result.success({
         "SPEED_LIMIT": SPEED_LIMIT,
     })
 
 @app.route('/setting/update', methods=['POST'])
 @cross_origin(origins='http://localhost:8080')
 def update_setting():
-    data = reception.toDict(request.data)
+    data = recept.to_dict(request.data)
     global SPEED_LIMIT
     SPEED_LIMIT = data['SPEED_LIMIT']
-    return result.success()
+    return Result.success()
 
 def detect_process():
     print("======START DETECTION======")

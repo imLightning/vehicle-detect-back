@@ -1,4 +1,4 @@
 import json
 
-def toDict(data):
+def to_dict(data):
     return json.loads(data)
