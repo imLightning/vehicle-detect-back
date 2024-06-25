@@ -1,4 +1,4 @@
-
+import json
 class Result:
     __code = 0
     __msg = ''
@@ -47,6 +47,10 @@ class Result:
             return Result(200, 'ok', data)
 
     @staticmethod
+    def success(data={}):
+        return json.dumps(Result.to_object(Result(200, 'ok', data)))
+
+    @staticmethod
     def error(msg):
         if msg is None:
             return Result(500, 'error', None)
@@ -60,3 +64,4 @@ class Result:
     @staticmethod
     def to_object(self):
         return dict(code=self.get_code(), msg=self.get_msg(), data=self.get_data())
+

@@ -4,7 +4,7 @@ import pymysql
 def get_connection():
     con = None
     try:
-        con = pymysql.connect(host="localhost", user="root", password="1234", database="vehicle")
+        con = pymysql.connect(host="localhost", user="root", password="3380", database="dbdetect")
     except Exception as e:
         print(e)
     return con
