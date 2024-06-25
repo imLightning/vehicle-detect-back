@@ -1,26 +1,32 @@
 from flask import Flask, request
 from flask_cors import cross_origin
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text
+
 from detect import vehicle as ve
 from threading import Thread
-from global_handle import result, reception
-import time
+from utils import result
 
 SPEED_LIMIT = 140
 
+from apps.login import to_login
+from apps.register import to_register
+
 app = Flask(__name__, static_folder='static')
 
-HOSTNAME = "127.0.0.1"
-PORT = 3306
-USERNAME = "root"
-PASSWORD = "3380"
-DATABASE = "dbdetect"
+@app.route('/register', methods=['GET', 'POST'])
+#注册
+def on_register():
+    return to_register()
 
-app.config[
-    'SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}?charset=utf8mb4"
+@app.route('/login', methods=['GET', 'POST'])
+#登录
+def on_login():
+    return to_login()
 
-db = SQLAlchemy(app)
+
+@app.route('/')
+@cross_origin(origins='http://localhost:8080')
+def hello_world():  # put application's code here
+    return 'Hello World!'
 
 # 录像上传函数
 @app.route('/recordUpload', methods=['POST'])
@@ -30,35 +36,26 @@ def record_upload():  # put application's code here
     # 文件写入磁盘
     record.save('./file/records/' + record.filename)
     # 记录数据库
-    with app.app_context():
-        with db.engine.connect() as conn:
-            # 执行原生SQL语句
-            # res = conn.execute(text("insert into file(filename) values (:name)"), [{"name":record.filename}])
-            # res = conn.execute(text("insert into file(filename) values ('admin')"))
-            res = conn.execute(text("select * from user"))
-            for result in res:
-                print(result)
-            print(res)
     # 建立线程车辆检测
     t=Thread(target=detect_process)
     t.start()
-    return result.success()
+    return result.ok()
 
 # 设置
 @app.route('/setting/get', methods=['GET'])
 @cross_origin(origins='http://localhost:8080')
 def get_setting():
-    return result.success({
+    return result.ok({
         "SPEED_LIMIT": SPEED_LIMIT,
     })
 
 @app.route('/setting/update', methods=['POST'])
 @cross_origin(origins='http://localhost:8080')
 def update_setting():
-    data = reception.toDict(request.data)
+    data = dict(request.data)
     global SPEED_LIMIT
     SPEED_LIMIT = data['SPEED_LIMIT']
-    return result.success()
+    return result.ok()
 
 def detect_process():
     print("======START DETECTION======")
