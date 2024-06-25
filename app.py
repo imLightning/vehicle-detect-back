@@ -1,25 +1,12 @@
 from flask import Flask, request
 from flask_cors import cross_origin
-
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text
-from detect import vehicle as ve
-from threading import Thread
-from global_handle import result, reception
-import time
-
-SPEED_LIMIT = 140
-
-app = Flask(__name__, static_folder='static')
-
-HOSTNAME = "127.0.0.1"
-PORT = 3306
-USERNAME = "root"
-PASSWORD = "3380"
-DATABASE = "dbdetect"
-
+from apps.file.upload import upload
+from apps.detect import vehicle as ve
+from utils import reception, result
 from apps.login import to_login
 from apps.register import to_register
+
+SPEED_LIMIT = 140
 
 app = Flask(__name__, static_folder='static')
 
@@ -29,30 +16,16 @@ app = Flask(__name__, static_folder='static')
 def on_register():
     return to_register()
 
-
 @app.route('/login', methods=['GET', 'POST'])
 #登录
 def on_login():
     return to_login()
 
-
-@app.route('/')
-@cross_origin(origins='http://localhost:8080')
-def hello_world():  # put application's code here
-    return 'Hello World!'
-
 # 录像上传函数
 @app.route('/recordUpload', methods=['POST'])
 @cross_origin(origins='http://localhost:8080')
 def record_upload():  # put application's code here
-    record = request.files['record']
-    # 文件写入磁盘
-    record.save('./file/records/' + record.filename)
-    # 记录数据库
-    # 建立线程车辆检测
-    t=Thread(target=detect_process)
-    t.start()
-    return result.success()
+    return upload()
 
 # 设置
 @app.route('/setting/get', methods=['GET'])

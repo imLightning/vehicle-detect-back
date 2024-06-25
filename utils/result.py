@@ -47,6 +47,10 @@ class Result:
             return Result(200, 'ok', data)
 
     @staticmethod
+    def success(data=''):
+        return Result(200, 'ok', data)
+
+    @staticmethod
     def error(msg):
         if msg is None:
             return Result(500, 'error', None)
