@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_cors import cross_origin
-from apps.file.upload import upload
+from apps.file.upload import upload, get_file
 from apps.detect import vehicle as ve
 from utils.result import Result
 from utils import recept
@@ -49,6 +49,11 @@ def detect_process():
     ve.vehicle_detect()
     print("======END   DETECTION======")
     return True
+
+@app.route('/file/get', methods=['GET'])
+@cross_origin(origins='http://localhost:8080')
+def get_allfile():  # put application's code here
+    return get_file()
 
 if __name__ == '__main__':
     app.run()

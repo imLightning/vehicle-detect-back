@@ -31,6 +31,20 @@ def select(sql, *params):
     finally:
         close(con, cur)
 
+def select_all(sql, *params):
+    con = get_connection()
+    cur = con.cursor()
+    try:
+        cur.execute(sql, *params)
+        result = cur.fetchall()
+        con.commit()
+        return result
+    except Exception as e:
+        print(f"错误:{e}")
+        con.rollback()
+    finally:
+        close(con, cur)
+
 # 更新
 def update(sql, *params):
     con = get_connection()
