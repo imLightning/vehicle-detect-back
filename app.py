@@ -2,14 +2,18 @@ from flask import Flask, request
 from flask_cors import cross_origin
 
 
+
 SPEED_LIMIT = 140
+
+
+from apps.file.upload import upload, get_file
+from apps.detect import vehicle as ve
 
 from utils.result import Result
 from utils import recept
 from apps.detect import vehicle as ve
 from apps.login import to_login, is_login
 from apps.register import to_register
-from apps.file import upload
 
 SPEED_LIMIT = 140
 
@@ -67,6 +71,11 @@ def detect_process():
     ve.vehicle_detect()
     print("======END   DETECTION======")
     return True
+
+@app.route('/file/get', methods=['GET'])
+@cross_origin(origins='http://localhost:8080')
+def get_allfile():  # put application's code here
+    return get_file()
 
 if __name__ == '__main__':
     app.run()
