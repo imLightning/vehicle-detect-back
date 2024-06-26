@@ -3,3 +3,4 @@ supervision==0.20.0
 numpy==1.26.4
 tqdm==4.66.4
 ultralytics==8.2.18
+pymysql==1.1.1

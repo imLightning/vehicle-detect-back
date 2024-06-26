@@ -1,16 +1,32 @@
+import os.path
+
 import cv2
 from tqdm import tqdm
 from ultralytics import YOLO
 import supervision as sv
 import numpy as np
 from collections import defaultdict, deque
+import subprocess
+import time as te
 
-def vehicle_detect():
+
+def vehicle_detect(filename, attr={'speed_limit': 150}):
+    timestamp = str(te.time())
+    info_dict = {}
+    overspeed_list = {}
+    input_video = 'file/records/' + filename
+    os.makedirs('file/videos/', exist_ok=True)
+    output_video = 'file/videos/' + filename
+    command = "ffmpeg -i {} -c copy -f mp4 {} -n".format(input_video, output_video)
+    subprocess.call(command, shell=True)
     # 配置
     MODEL = 'static/model/best.pt'
     MODEL_RESOLUTION = 1280
-    SOURCE_VIDEO_PATH = 'tests/minivehicles.mp4'
-    TARGET_VIDEO_PATH = 'tests/minivehicles-result.mp4'
+    # SOURCE_VIDEO_PATH = 'tests/minivehicles.mp4'
+    SOURCE_VIDEO_PATH = 'file/videos/' + filename
+    # TARGET_VIDEO_PATH = 'tests/minivehicles-result.mp4'
+    os.makedirs('file/results/', exist_ok=True)
+    TARGET_VIDEO_PATH = 'file/results/' + filename
     CONFIDENCE_THRESHOLD = 0.3
     IOU_THRESHOLD = 0.5
     SOURCE = np.array([
@@ -44,14 +60,13 @@ def vehicle_detect():
             transform_points = cv2.perspectiveTransform(reshaped_points, self.m)
             return transform_points.reshape(-1, 2)
 
-
     # 初始化
     model = YOLO(MODEL)
     video_info = sv.VideoInfo.from_video_path(SOURCE_VIDEO_PATH)
     view_transformer = ViewTransformer(SOURCE, TARGET)
     frame_generator = sv.get_video_frames_generator(SOURCE_VIDEO_PATH)
     frame_iterator = iter(frame_generator)
-    frame = next(frame_iterator)
+    # frame = next(frame_iterator)
 
     byte_track = sv.ByteTrack(
         frame_rate=video_info.fps,
@@ -116,6 +131,7 @@ def vehicle_detect():
 
             # 格式化
             labels = []
+            limit_flag = 0
 
             for tracker_id in detections.tracker_id:
                 if len(coordinates[tracker_id]) < video_info.fps / 2:
@@ -127,8 +143,15 @@ def vehicle_detect():
                     distance = abs(coordinates_start - coordinates_end)
                     time = len(coordinates[tracker_id]) / video_info.fps
                     speed = distance / time * 3.6
-                    labels.append(f"#{tracker_id} {int(speed)} km/h")
-
+                    info_dict[tracker_id] = int(speed)
+                    # 超速
+                    if tracker_id not in overspeed_list and int(speed) >= int(attr['speed_limit']):
+                        save_image_dir = os.path.join('file/warning/', '%s.jpg' % (timestamp + '_' + str(tracker_id)))
+                        labels.append(f"# WARNING! {tracker_id} {int(speed)} km/h")
+                        limit_flag = 1
+                        overspeed_list[tracker_id] = 1
+                    else:
+                        labels.append(f"#{tracker_id} {int(speed)} km/h")
             # 标注
             annotated_frame = frame.copy()
             annotated_frame = trace_annotator.annotate(
@@ -144,8 +167,13 @@ def vehicle_detect():
                 detections=detections,
                 labels=labels
             )
+            # af = annotated_frame.tofile()
 
             # sv.plot_image(annotated_frame)
-
+            if limit_flag:
+                os.makedirs('file/warning/', exist_ok=True)
+                cv2.imwrite(save_image_dir, annotated_frame)
             # 保存
+            # cv2.imshow('detection', annotated_frame)
             sink.write_frame(annotated_frame)
+    return info_dict
