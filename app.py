@@ -1,17 +1,16 @@
 from flask import Flask, request
 from flask_cors import cross_origin
 from apps.detect.process import detect_file
-from apps.file.download import get_res
+from apps.file.download import get_res, send_records, send_res, send_violation
 from apps.file.upload import upload, get_file, manual_upload, del_file, del_res
+from apps.setting import update_attr, get_attr
 from utils.result import Result
 from utils import recept
 from apps.detect import vehicle as ve
 from apps.login import to_login, is_login
-
-SPEED_LIMIT = 140
+import apps.file.violation as vn
 
 app = Flask(__name__, static_folder='static')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 @cross_origin(origins='http://localhost:8080')
@@ -44,16 +43,13 @@ def record_upload():  # put application's code here
 @cross_origin(origins='http://localhost:8080')
 def get_setting():
     return Result.success({
-        "SPEED_LIMIT": SPEED_LIMIT,
+        "SPEED_LIMIT": get_attr('SPEED_LIMIT')
     })
 
 @app.route('/setting/update', methods=['POST'])
 @cross_origin(origins='http://localhost:8080')
 def update_setting():
-    data = recept.to_dict()
-    global SPEED_LIMIT
-    SPEED_LIMIT = data['SPEED_LIMIT']
-    return Result.success()
+    return update_attr()
 
 def detect_process():
     print("======START DETECTION======")
@@ -90,6 +86,36 @@ def record_delete():
 @cross_origin(origins='http://localhost:8080')
 def res_delete():
     return del_res()
+
+@app.route('/record/download', methods=['POST', 'GET'])
+@cross_origin(origins='http://localhost:8080')
+def download_record():
+    return send_records();
+
+@app.route('/res/download', methods=['POST', 'GET'])
+@cross_origin(origins='http://localhost:8080')
+def download_res():
+    return send_res();
+
+@app.route('/violation/download', methods=['POST', 'GET'])
+@cross_origin(origins='http://localhost:8080')
+def download_violation():
+    return send_violation();
+
+@app.route('/violation/get', methods=['GET'])
+@cross_origin(origins='http://localhost:8080')
+def get_violation():
+    return vn.get_all();
+
+@app.route('/violation/del', methods=['POST'])
+@cross_origin(origins='http://localhost:8080')
+def del_violation():
+    return vn.del_one();
+
+@app.route('/violation/update', methods=['POST'])
+@cross_origin(origins='http://localhost:8080')
+def update_violation():
+    return vn.insert_one();
 
 if __name__ == '__main__':
     app.run()

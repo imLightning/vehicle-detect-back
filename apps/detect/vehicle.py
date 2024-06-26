@@ -9,6 +9,8 @@ from collections import defaultdict, deque
 import subprocess
 import time as te
 
+from apps.file import violation
+
 
 def vehicle_detect(filename, attr={'speed_limit': 150}):
     timestamp = str(te.time())
@@ -25,8 +27,8 @@ def vehicle_detect(filename, attr={'speed_limit': 150}):
     # SOURCE_VIDEO_PATH = 'tests/minivehicles.mp4'
     SOURCE_VIDEO_PATH = 'file/videos/' + filename
     # TARGET_VIDEO_PATH = 'tests/minivehicles-result.mp4'
-    os.makedirs('file/results/', exist_ok=True)
-    TARGET_VIDEO_PATH = 'file/results/' + filename
+    os.makedirs('file/raw_results/', exist_ok=True)
+    TARGET_VIDEO_PATH = 'file/raw_results/' + filename
     CONFIDENCE_THRESHOLD = 0.3
     IOU_THRESHOLD = 0.5
     SOURCE = np.array([
@@ -132,6 +134,7 @@ def vehicle_detect(filename, attr={'speed_limit': 150}):
             # 格式化
             labels = []
             limit_flag = 0
+            limit_flag_name = ''
 
             for tracker_id in detections.tracker_id:
                 if len(coordinates[tracker_id]) < video_info.fps / 2:
@@ -147,6 +150,7 @@ def vehicle_detect(filename, attr={'speed_limit': 150}):
                     # 超速
                     if tracker_id not in overspeed_list and int(speed) >= int(attr['speed_limit']):
                         save_image_dir = os.path.join('file/warning/', '%s.jpg' % (timestamp + '_' + str(tracker_id)))
+                        limit_flag_name = (timestamp + '_' + str(tracker_id) + '.jpg')
                         labels.append(f"# WARNING! {tracker_id} {int(speed)} km/h")
                         limit_flag = 1
                         overspeed_list[tracker_id] = 1
@@ -173,6 +177,7 @@ def vehicle_detect(filename, attr={'speed_limit': 150}):
             if limit_flag:
                 os.makedirs('file/warning/', exist_ok=True)
                 cv2.imwrite(save_image_dir, annotated_frame)
+                violation.insert_one(limit_flag_name)
             # 保存
             # cv2.imshow('detection', annotated_frame)
             sink.write_frame(annotated_frame)
