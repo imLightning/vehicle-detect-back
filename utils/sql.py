@@ -4,7 +4,7 @@ import pymysql
 def get_connection():
     con = None
     try:
-        con = pymysql.connect(host="localhost", user="root", password="3380", database="dbdetect")
+        con = pymysql.connect(host="localhost", user="root", password="1234", database="vehicle")
     except Exception as e:
         print(e)
     return con
@@ -23,6 +23,20 @@ def select(sql, *params):
     try:
         cur.execute(sql, *params)
         result = cur.fetchone()
+        con.commit()
+        return result
+    except Exception as e:
+        print(f"错误:{e}")
+        con.rollback()
+    finally:
+        close(con, cur)
+
+def select_all(sql, *params):
+    con = get_connection()
+    cur = con.cursor()
+    try:
+        cur.execute(sql, *params)
+        result = cur.fetchall()
         con.commit()
         return result
     except Exception as e:

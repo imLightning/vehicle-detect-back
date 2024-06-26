@@ -2,16 +2,12 @@ from flask import Flask, request
 from flask_cors import cross_origin
 
 
-from apps.detect import vehicle as ve
-from threading import Thread
-from utils import result
-
 SPEED_LIMIT = 140
 
 from utils.result import Result
 from utils import recept
 from apps.detect import vehicle as ve
-from apps.login import to_login
+from apps.login import to_login, is_login
 from apps.register import to_register
 from apps.file import upload
 
@@ -25,10 +21,16 @@ def on_register():
     return to_register()
 
 @app.route('/login', methods=['GET', 'POST'])
+@cross_origin(origins='http://localhost:8080')
 #登录
 def on_login():
     return to_login()
 
+@app.route('/is_login/<token>', methods=['GET', 'POST'])
+@cross_origin(origins='http://localhost:8080')
+#登录
+def logined(token):
+    return is_login(token)
 
 
 @app.route('/')
