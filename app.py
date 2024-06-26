@@ -3,7 +3,6 @@ from flask_cors import cross_origin
 from apps.detect.process import detect_file
 from apps.file.download import get_res
 from apps.file.upload import upload, get_file, manual_upload, del_file, del_res
-from apps.detect import vehicle as ve
 from utils.result import Result
 from utils import recept
 from apps.detect import vehicle as ve
