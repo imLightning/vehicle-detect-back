@@ -20,15 +20,13 @@ def to_login():
     if user is not None:
         return_dict = Result.to_object(Result.data(user.to_object(user)))
     else:
-        return_dict = Result.to_object(Result.error('账号或密码错误'))
+        return_dict = Result.to_object(Result.ok('账号或密码错误'))
     return json.dumps(return_dict, sort_keys=False)
 
 def is_login(token):
     user = None
 
     id = token
-    print(id)
-
 
     sql = 'select * from user where id=%s;'
     rs = select(sql, (id,))
@@ -37,5 +35,5 @@ def is_login(token):
     if user is not None:
         return_dict = Result.to_object(Result.data(user.to_object(user)))
     else:
-        return_dict = Result.to_object(Result.error('用户不存在'))
+        return_dict = Result.to_object(Result.ok('用户不存在'))
     return json.dumps(return_dict, sort_keys=False)

@@ -13,16 +13,11 @@ from utils.result import Result
 from utils import recept
 from apps.detect import vehicle as ve
 from apps.login import to_login, is_login
-from apps.register import to_register
 
 SPEED_LIMIT = 140
 
 app = Flask(__name__, static_folder='static')
 
-@app.route('/register', methods=['GET', 'POST'])
-#注册
-def on_register():
-    return to_register()
 
 @app.route('/login', methods=['GET', 'POST'])
 @cross_origin(origins='http://localhost:8080')
