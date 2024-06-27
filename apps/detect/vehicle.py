@@ -180,5 +180,6 @@ def vehicle_detect(filename, attr={'speed_limit': 150}):
                 violation.insert_one(limit_flag_name)
             # 保存
             # cv2.imshow('detection', annotated_frame)
+
             sink.write_frame(annotated_frame)
     return info_dict
