@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 
 from apps import setting
@@ -24,11 +25,14 @@ def result_process(id, filename, attr):
     input_video = 'file/raw_results/' + filename
     output_video = 'file/results/' + filename
     command = "ffmpeg -i {} -r 10 -pix_fmt yuv420p -vcodec libx264 -preset veryslow -profile:v baseline  -crf 23 -acodec aac -b:a 32k -strict -5 {} -y".format(input_video, output_video)
-    fpsize = os.path.getsize(input_video)
-    if fpsize >= 48000.0:
-        subprocess.call(command, shell=True)
+    # fpsize = os.path.getsize(input_video) / 1024
+    # if fpsize >= 48000.0:
+    #     subprocess.call(command, shell=True)
+    # else:
+    #     shutil.copy(input_video, output_video)
+    subprocess.call(command, shell=True)
     # info_dict = {1: 75, 2: 111, 3: 115, 5: 126, 6: 115, 7: 111, 9: 129, 10: 61, 11: 97, 12: 86, 13: 140, 16: 214}
-    print(info_dict)
+    # print(info_dict)
     update_state(id, '已检测')
     new_info_dict = {}
     for key, value in info_dict.items():
